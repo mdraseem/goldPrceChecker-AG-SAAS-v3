@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karat Smart - Gold Price Calculator</title>
+    <meta name="description" content="Calculate real-time gold price based on purity, weight, and 100+ global currencies using Karat Smart.">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            50: '#fdfbf7',
+                            100: '#fbf5eb',
+                            200: '#f3e5ce',
+                            300: '#ead0a6',
+                            400: '#dfb575',
+                            500: '#d59e4e',
+                            600: '#c5833d',
+                            700: '#a46333',
+                            800: '#86512e',
+                            900: '#6c4328',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- html2canvas and jsPDF for Sharing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-300 font-outfit antialiased selection:bg-gold-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-gold-600 dark:text-gold-400">
+                <i class="ph-fill ph-coins text-2xl animate-pulse-slow"></i>
+                <h1 id="app-title" class="text-xl font-bold tracking-tight">Karat Smart</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div id="live-indicator" class="text-xs font-medium px-3 py-1.5 rounded-full bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50 hidden sm:flex items-center gap-1.5 shadow-sm">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    Live Market
+                </div>
+
+                <!-- Language Selector -->
+                <div class="relative group">
+                    <button id="langButton" class="flex items-center gap-1 text-sm font-medium px-2 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700 focus:outline-none">
+                        <i class="ph ph-translate text-lg"></i>
+                        <span id="currentLangLabel" class="hidden sm:inline">English</span>
+                        <i class="ph ph-caret-down text-xs"></i>
+                    </button>
+                    <!-- Dropdown Content -->
+                    <div id="langDropdown" class="absolute right-0 mt-1 w-56 rounded-xl bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 opacity-0 invisible transition-all duration-200 z-50 overflow-hidden text-sm">
+                        <div class="max-h-64 overflow-y-auto py-1.5 flex flex-col">
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'en')">English (US)</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'es')">Spanish (Español)</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'zh')">Mandarin (中文)</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'fr')">French (Français)</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'ar')">Arabic (العربية)</a>
+                            
+                            <div class="h-px bg-gray-100 dark:bg-gray-700 mx-3 my-1"></div>
+                            
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'hi')">Hindi (हिन्दी)</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'ta')">Tamil (தமிழ்)</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'te')">Telugu (తెలుగు)</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'bn')">Bengali (বাংলা)</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'mr')">Marathi (मराठी)</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium" onclick="selectLang(event, 'gu')">Gujarati (ગુજરાતી)</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dark Mode Toggle -->
+                <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-gold-500 focus:outline-none" aria-label="Toggle dark mode">
+                    <i id="themeIcon" class="ph ph-moon text-xl text-gray-600 dark:text-gray-300"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex flex-col gap-6" id="captureArea">
+        
+        <!-- App Title Area -->
+        <div class="text-center mb-6">
+            <h2 id="t-title" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">KaratSmart – Gold Price Checker</h2>
+            <p id="t-subtitle" class="text-gray-500 dark:text-gray-400 max-w-lg mx-auto mb-6">This is NOT just a calculator. It is a decision tool</p>
+            
+            <!-- Global Controls & Tabs -->
+            <div class="flex flex-col sm:flex-row justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-3 gap-4">
+                <!-- Mode Tabs -->
+                <div class="flex justify-start gap-2 sm:gap-6 w-full sm:w-auto overflow-x-auto">
+                    <button id="tabStandard" class="text-gold-600 dark:text-gold-400 font-bold border-b-2 border-gold-500 px-2 sm:px-4 whitespace-nowrap transition-colors">Standard Calculator</button>
+                    <button id="tabJewellery" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent px-2 sm:px-4 flex items-center gap-1.5 whitespace-nowrap transition-colors">Jewellery Pricing <i class="ph-fill ph-crown text-gold-400"></i></button>
+                </div>
+                
+                <!-- Global Currency Selection -->
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <label id="t-currencyLabel" for="currency" class="text-sm font-semibold text-gray-500 dark:text-gray-400 whitespace-nowrap hidden sm:block"><i class="ph ph-coins"></i> Currency:</label>
+                    <div class="relative w-full sm:w-48">
+                        <select id="currency" onchange="window.updateCurrencyOutputs && window.updateCurrencyOutputs()" class="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors appearance-none pr-8 font-medium shadow-sm">
+                            <!-- Options populated dynamically by JS -->
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500 dark:text-gray-400">
+                            <i class="ph ph-caret-down text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative" id="mainGrid">
+            
+            <!-- Standard Input Form Card -->
+            <div id="standardFormContainer" class="glass-card bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-gold-900/5 border border-gray-100 dark:border-gray-700/50 p-6 sm:p-8 transform transition-all duration-300">
+                <form id="calculatorForm" class="space-y-6">
+                    <!-- Karat Selection -->
+                    <div class="space-y-2">
+                        <label id="t-purityLabel" for="karat" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Gold Purity (Karat)</label>
+                        <div class="relative">
+                            <select id="karat" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white px-4 py-3 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors appearance-none pr-10">
+                                <!-- Options populated by JS -->
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
+                                <i class="ph ph-caret-down"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Market Rate Override (Standard) -->
+                    <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="ph ph-pencil-circle"></i> <span id="t-sCustomRateLabel">Manual Market Rate</span>
+                            </label>
+                            <label class="relative inline-flex items-center cursor-pointer scale-75">
+                                <input type="checkbox" id="sUseCustomRate" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-gold-500"></div>
+                            </label>
+                        </div>
+                        <div id="sCustomRateContainer" class="hidden transition-all duration-200">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm jCurrencySymbol">$</span>
+                                </div>
+                                <input type="number" id="sCustomRate" step="0.01" min="0" placeholder="Price for 1g" class="block w-full pl-8 pr-12 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-gold-500">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">/g</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weight Input & Unit -->
+                    <div class="space-y-2">
+                        <label id="t-weightLabel" for="weight" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Weight</label>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="relative w-full sm:flex-1">
+                                <input type="number" id="weight" step="0.01" min="0" placeholder="0.00" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white px-4 py-3 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors font-mono">
+                            </div>
+                            <div class="relative w-full sm:w-32 mt-2 sm:mt-0">
+                                <select id="weightUnit" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white px-4 py-3 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 transition-colors appearance-none pr-10">
+                                    <option value="gram">Grams (g)</option>
+                                    <option value="toz">Troy Oz</option>
+                                    <option value="tola">Tola</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
+                                    <i class="ph ph-caret-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="button" id="calculateBtn" class="w-full bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg shadow-gold-500/30 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                            <i class="ph ph-calculator text-lg"></i>
+                            <span id="t-calculateBtn">Calculate Value</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Jewellery Input Form Card (Hidden by default) -->
+            <div id="jewelleryFormContainer" class="hidden glass-card bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-gold-900/5 border border-gold-200 dark:border-gold-900/50 p-6 sm:p-8 transform transition-all duration-300 relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-gold-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider flex items-center gap-1">Pro <i class="ph-fill ph-crown"></i></div>
+                <form id="jewelleryForm" class="space-y-5">
+                    
+                    <!-- Market Price Override -->
+                    <div class="p-4 rounded-xl bg-gold-50/50 dark:bg-gold-900/10 border border-gold-200 dark:border-gold-800/50 space-y-3 mb-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-gold-700 dark:text-gold-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="ph-fill ph-pencil-circle"></i> <span id="t-jCustomRateLabel">Manual Market Rate</span>
+                            </label>
+                            <label class="relative inline-flex items-center cursor-pointer scale-75">
+                                <input type="checkbox" id="jUseCustomRate" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-gold-500"></div>
+                            </label>
+                        </div>
+                        <div id="jCustomRateContainer" class="hidden transition-all duration-200">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm jCurrencySymbol">$</span>
+                                </div>
+                                <input type="number" id="jCustomRate" step="0.01" min="0" placeholder="Price for 1g" class="block w-full pl-8 pr-12 rounded-lg border border-gold-200 dark:border-gold-800 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:ring-2 focus:ring-gold-500">
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">/g</span>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-gray-500 mt-1" id="t-jCustomRateHint">Enter price for 1g of the selected purity.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <!-- Karat -->
+                        <div class="space-y-2 w-full sm:flex-1 mt-2 sm:mt-0">
+                            <label id="t-jPurityLabel" for="jKarat" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Purity (Karat)</label>
+                            <div class="relative">
+                                <select id="jKarat" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white px-4 py-3 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 appearance-none pr-10">
+                                    <option value="24">24K (99.9%)</option>
+                                    <option value="22" selected>22K (91.6%)</option>
+                                    <option value="21">21K (87.5%)</option>
+                                    <option value="18">18K (75.0%)</option>
+                                    <option value="14">14K (58.3%)</option>
+                                    <option value="10">10K (41.7%)</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
+                                    <i class="ph ph-caret-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Weight -->
+                        <div class="space-y-2 w-full sm:flex-1 mt-4 sm:mt-0">
+                            <label id="t-jWeightLabel" for="jWeight" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Gold Weight (g)</label>
+                            <input type="number" id="jWeight" step="0.01" min="0" placeholder="e.g. 15.5" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white px-4 py-3 focus:ring-2 focus:ring-gold-500 focus:border-gold-500 font-mono">
+                        </div>
+                    </div>
+
+                    <!-- Wastage and Making Charges -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4 sm:mt-0">
+                        <div class="space-y-2 w-full">
+                            <label id="t-jWastageLabel" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Wastage</label>
+                            <div class="w-full">
+                                <input type="number" id="jWastageVal" step="0.01" min="0" placeholder="0" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 font-mono">
+                            </div>
+                            <div class="relative w-full mt-2">
+                                <select id="jWastageType" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 text-sm appearance-none pr-8">
+                                    <option value="percent">Percentage (%)</option>
+                                    <option value="grams">Grams (g)</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
+                                    <i class="ph ph-caret-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2 w-full mt-4 sm:mt-0">
+                            <label id="t-jMakingLabel" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Making Charges</label>
+                            <div class="w-full">
+                                <input type="number" id="jMakingVal" step="0.01" min="0" placeholder="0" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 font-mono">
+                            </div>
+                            <div class="relative w-full mt-2">
+                                <select id="jMakingType" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 text-sm appearance-none pr-8">
+                                    <option value="per_gram">Per Gram (/g)</option>
+                                    <option value="percent">Percentage (%)</option>
+                                    <option value="flat">Flat Amount</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500 dark:text-gray-400">
+                                    <i class="ph ph-caret-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Other Expenses -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label for="jStones" class="block text-sm font-semibold text-gray-700 dark:text-gray-300"><span id="t-jStonesLabel">Stones / Diamonds</span> (<span class="jCurrencySymbol">$</span>)</label>
+                            <input type="number" id="jStones" step="0.01" min="0" placeholder="0.00" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 font-mono">
+                        </div>
+                        <div class="space-y-2">
+                            <label for="jScrap" class="block text-sm font-semibold text-gray-700 dark:text-gray-300"><span id="t-jScrapLabel">Scrap Deduction</span> (<span class="jCurrencySymbol">$</span>)</label>
+                            <input type="number" id="jScrap" step="0.01" min="0" placeholder="0.00" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 font-mono">
+                        </div>
+                    </div>
+
+                    <!-- Tax -->
+                    <div class="space-y-2">
+                        <label id="t-jTaxLabel" for="jTax" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Tax / GST (%)</label>
+                        <input type="number" id="jTax" step="0.01" min="0" placeholder="e.g. 3" class="block w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500">
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="button" id="jCalculateBtn" class="w-full bg-gradient-to-r from-gray-800 to-gray-900 dark:from-gray-700 dark:to-gray-800 text-gold-400 font-semibold py-3.5 px-6 rounded-xl shadow-lg border border-gray-700 transform transition-all active:scale-[0.98] flex items-center justify-center gap-2 hover:text-gold-300">
+                            <i class="ph ph-receipt text-lg"></i> <span id="t-jCalculateBtnText">Checkout Estimate</span>
+                        </button>
+                    </div>
+
+                    <!-- Inline Deal Checker -->
+                    <div class="pt-4 mt-2 border-t border-gray-200 dark:border-gray-700 space-y-3 bg-blue-50/30 dark:bg-blue-900/10 -mx-6 sm:-mx-8 px-6 sm:px-8 pb-6 -mb-6 sm:-mb-8 rounded-b-2xl border-b border-l border-r border-gold-200 dark:border-gold-800/50">
+                        <label for="dcSellerPrice" class="block text-sm font-semibold text-gray-700 dark:text-gray-300"><i class="ph-bold ph-scales text-blue-500"></i> Compare With Seller (Optional)</label>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div class="relative w-full">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 font-bold jCurrencySymbol">$</span>
+                                </div>
+                                <input type="number" id="dcSellerPrice" step="0.01" min="0" placeholder="Seller's Final Price" class="block w-full pl-8 pr-4 rounded-xl border border-blue-200 dark:border-blue-800 bg-white dark:bg-gray-800 px-4 py-3 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono font-medium shadow-sm">
+                            </div>
+                            <button type="button" id="dcCheckBtn" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all whitespace-nowrap whitespace-nowrap active:scale-[0.98]">
+                                Check Deal
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+
+
+            <!-- Standard Output Details Card -->
+            <div id="standardOutputCard" class="glass-card bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-xl border border-gray-800/50 p-6 sm:p-8 text-white relative flex flex-col justify-between overflow-hidden transition-all duration-300">
+                <!-- Background decoration -->
+                <div class="absolute top-0 right-0 -mx-10 -my-10 w-48 h-48 bg-gold-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 -mx-10 -my-10 w-48 h-48 bg-gold-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="relative z-10 flex-1 flex flex-col justify-center">
+                    <div class="mb-6 flex justify-between items-start">
+                        <div>
+                            <p id="t-totalValueLabel" class="text-gray-400 text-sm font-medium mb-1">Total Estimated Value</p>
+                            <h3 class="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-300 to-gold-500 font-mono tracking-tight" id="outTotalValue">$0.00</h3>
+                        </div>
+                        <div class="bg-gray-800/50 rounded-lg p-2 border border-gray-700/50 backdrop-blur-sm">
+                            <i class="ph ph-trend-up text-gold-400 text-xl"></i>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 pt-6 border-t border-gray-700 flex-1">
+                        <div class="flex justify-between items-center bg-gray-800/40 p-3 rounded-lg border border-gray-700/30">
+                            <span class="text-gray-400 text-sm flex items-center gap-2"><i class="ph ph-sparkle text-gold-500"></i> <span id="t-purityResult">Purity</span></span>
+                            <span class="font-semibold" id="outPurity">-</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-gray-800/40 p-3 rounded-lg border border-gray-700/30">
+                            <span class="text-gray-400 text-sm flex items-center gap-2"><i class="ph ph-scales text-gold-500"></i> <span id="t-weightResult">Weight in Grams</span></span>
+                            <span class="font-semibold font-mono" id="outWeight">- g</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-gray-800/40 p-3 rounded-lg border border-gray-700/30">
+                            <span class="text-gray-400 text-sm flex items-center gap-2"><i class="ph ph-chart-line-up text-gold-500"></i> <span id="t-marketPriceResult">Market Price (1g 24K)</span></span>
+                            <span class="font-semibold font-mono" id="outMarketPrice">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 relative z-10 grid grid-cols-2 gap-3" id="standardActions">
+                    <button id="saveHistoryBtn" class="bg-white/10 hover:bg-white/20 text-white font-medium py-2 px-4 rounded-lg backdrop-blur-sm transition-colors text-sm flex items-center justify-center gap-2 border border-white/5">
+                        <i class="ph ph-bookmarks text-lg"></i> <span id="t-saveBtn">Save</span>
+                    </button>
+                    <button id="shareReceiptBtn" class="bg-gold-500/20 hover:bg-gold-500/30 text-gold-300 font-medium py-2 px-4 rounded-lg backdrop-blur-sm transition-colors text-sm flex items-center justify-center gap-2 border border-gold-500/20">
+                        <i class="ph ph-export text-lg"></i> <span id="t-shareBtn">Share</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Jewellery Output Details Card (Hidden by default) -->
+            <div id="jewelleryOutputCard" class="hidden glass-card bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-xl border border-gray-800/50 p-6 sm:p-8 text-white relative flex flex-col justify-between overflow-hidden transition-all duration-300">
+                <div class="absolute top-0 right-0 -mx-10 -my-10 w-48 h-48 bg-gold-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold-500 to-transparent opacity-50"></div>
+                
+                <div class="relative z-10 flex-1 flex flex-col">
+                    <div class="mb-4 text-center border-b border-gray-700 pb-4">
+                        <p id="t-jNetPayable" class="text-gray-400 text-sm font-medium mb-1 uppercase tracking-widest">Final Net Payable <span class="lowercase">(Fair Price)</span></p>
+                        <h3 class="text-4xl sm:text-5xl font-bold text-white font-mono tracking-tight" id="jOutTotalValue">$0.00</h3>
+                    </div>
+
+                    <!-- Deal Checker Result injected here -->
+                    <div id="dcResult" class="hidden mb-4 p-4 rounded-xl border relative">
+                        <div id="dcVerdict" class="absolute -top-3 left-1/2 transform -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-black text-center whitespace-nowrap border-2">
+                            VERDICT
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-2 text-center">
+                            <div>
+                                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Seller Price</p>
+                                <p id="dcOutSeller" class="font-mono font-bold text-white text-base">-</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Premium / Diff</p>
+                                <p id="dcOutDiff" class="font-mono font-bold text-base">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-2 text-xs sm:text-sm flex-1 mt-2">
+                        <!-- Breakdown Rows -->
+                        <div class="flex justify-between items-center text-gray-300">
+                            <span>Base Gold Price <span id="jOutBaseWeight" class="text-xs text-gray-500 ml-1"></span></span>
+                            <span class="font-mono text-white" id="jOutBasePrice">$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-gray-300">
+                            <span>Wastage <span id="jOutWastageType" class="text-xs text-gold-500 ml-1"></span></span>
+                            <span class="font-mono text-white" id="jOutWastagePrice">+$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-gray-300">
+                            <span>Making Charges <span id="jOutMakingType" class="text-xs text-gold-500 ml-1"></span></span>
+                            <span class="font-mono text-white" id="jOutMakingPrice">+$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-gray-300">
+                            <span>Stones / Diamonds</span>
+                            <span class="font-mono text-white" id="jOutStonesPrice">+$0.00</span>
+                        </div>
+                        <div class="h-px w-full bg-gray-700/50 my-1"></div>
+                        <div class="flex justify-between items-center font-medium">
+                            <span class="text-gray-200">Subtotal</span>
+                            <span class="font-mono text-gold-300" id="jOutSubtotal">$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-green-400">
+                            <span>Scrap Deduction</span>
+                            <span class="font-mono" id="jOutScrapValue">-$0.00</span>
+                        </div>
+                        <div class="h-px w-full bg-gray-700/50 my-1"></div>
+                        <div class="flex justify-between items-center text-gray-300">
+                            <span>Taxable Value</span>
+                            <span class="font-mono text-white" id="jOutTaxable">$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center text-gray-300">
+                            <span>Tax <span id="jOutTaxPerc" class="text-xs text-gray-500 ml-1"></span></span>
+                            <span class="font-mono text-red-300" id="jOutTaxValue">+$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 relative z-10 grid grid-cols-2 gap-3" id="jewelleryActions">
+                    <button id="jSaveHistoryBtn" class="bg-white/10 hover:bg-white/20 text-white font-medium py-2 px-4 rounded-lg backdrop-blur-sm transition-colors text-sm flex items-center justify-center gap-2 border border-white/5">
+                        <i class="ph ph-bookmarks text-lg"></i> <span id="t-jSaveBtn">Save</span>
+                    </button>
+                    <button id="jShareReceiptBtn" class="bg-gold-500/20 hover:bg-gold-500/30 text-gold-300 font-medium py-2 px-4 rounded-lg backdrop-blur-sm transition-colors text-sm flex items-center justify-center gap-2 border border-gold-500/20">
+                        <i class="ph ph-export text-lg"></i> <span id="t-jShareBtn">Share</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="mt-4 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i class="ph ph-clock-counter-clockwise text-gold-500"></i> <span id="t-historyTitle">Calculation History</span>
+                </h3>
+                <button id="clearHistoryBtn" class="text-sm text-red-500 hover:text-red-600 dark:text-red-400 py-1 px-2 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors hidden">
+                    Clear All
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="text-xs uppercase bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 rounded-lg">
+                        <tr>
+                            <th class="px-4 py-3 rounded-tl-lg rounded-bl-lg font-medium">Date</th>
+                            <th class="px-4 py-3 font-medium">Details</th>
+                            <th class="px-4 py-3 font-medium">Market/g</th>
+                            <th class="px-4 py-3 rounded-tr-lg rounded-br-lg font-medium text-right">Total Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="divide-y divide-gray-100 dark:divide-gray-700/50 text-gray-700 dark:text-gray-300">
+                        <!-- History injected here -->
+                    </tbody>
+                </table>
+                <div id="noHistoryMessage" class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm border-t border-gray-100 dark:border-gray-700/50">
+                    No calculations saved yet.
+                </div>
+            </div>
+        </div>
+
+        <!-- Extra Tools Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+            <!-- Purity Chart -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col h-full">
+                <div class="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/80 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700 p-4">
+                    <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="ph ph-table text-gold-500"></i> Common Purity Chart
+                    </h3>
+                </div>
+                <div class="p-0 flex-1 overflow-y-auto max-h-60">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-500 dark:text-gray-400 uppercase bg-gray-50 dark:bg-gray-700/50 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-2 font-medium">Karat</th>
+                                <th class="px-4 py-2 font-medium">Fineness</th>
+                                <th class="px-4 py-2 font-medium">Purity %</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 dark:divide-gray-700/50 text-gray-700 dark:text-gray-300">
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                <td class="px-4 py-2 font-semibold text-gold-600 dark:text-gold-400">24K</td>
+                                <td class="px-4 py-2 font-mono">999</td>
+                                <td class="px-4 py-2">99.9%</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                <td class="px-4 py-2 font-semibold">22K</td>
+                                <td class="px-4 py-2 font-mono">916</td>
+                                <td class="px-4 py-2">91.6%</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                <td class="px-4 py-2 font-semibold">21K</td>
+                                <td class="px-4 py-2 font-mono">875</td>
+                                <td class="px-4 py-2">87.5%</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                <td class="px-4 py-2 font-semibold">18K</td>
+                                <td class="px-4 py-2 font-mono">750</td>
+                                <td class="px-4 py-2">75.0%</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                <td class="px-4 py-2 font-semibold">14K</td>
+                                <td class="px-4 py-2 font-mono">585</td>
+                                <td class="px-4 py-2">58.3%</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                <td class="px-4 py-2 font-semibold">10K</td>
+                                <td class="px-4 py-2 font-mono">417</td>
+                                <td class="px-4 py-2">41.7%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Conversion Tools -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700 p-6 flex flex-col justify-center gap-4">
+                <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
+                    <i class="ph ph-arrows-left-right text-gold-500"></i> Quick Conversions
+                </h3>
+                
+                <div class="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 border border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-sm">
+                            <span class="font-semibold text-gray-800 dark:text-gray-200">1</span> <span class="text-sm text-gray-500">Tola</span>
+                        </div>
+                        <i class="ph ph-equals text-gray-400"></i>
+                        <div class="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-sm">
+                            <span class="font-bold text-gold-600 dark:text-gold-400 font-mono">11.6638</span> <span class="text-sm text-gray-500">g</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-4 border border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-sm">
+                            <span class="font-semibold text-gray-800 dark:text-gray-200">1</span> <span class="text-sm text-gray-500">Troy Oz</span>
+                        </div>
+                        <i class="ph ph-equals text-gray-400"></i>
+                        <div class="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-sm">
+                            <span class="font-bold text-gold-600 dark:text-gold-400 font-mono">31.1035</span> <span class="text-sm text-gray-500">g</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 py-6 border-t border-gray-200 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
+        <p>Karat Smart Calculator &copy; <script>document.write(new Date().getFullYear())</script></p>
+        <p class="mt-1 opacity-75 text-xs">For informational purposes only. Check live brokers for exact market rates.</p>
+    </footer>
+
+    <!-- Overlay for capturing screenshot cleanly -->
+    <div id="captureWatermark" class="hidden absolute right-8 bottom-8 text-xl font-bold text-gold-500 opacity-50 z-50">
+        Karat Smart
+    </div>
+
+    <!-- Premium Upgrade Modal -->
+    <div id="premiumModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
+        <!-- Dialog -->
+        <div class="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 max-w-sm w-full mx-4 overflow-hidden transform transition-all">
+            <div class="p-6 text-center">
+                <div class="mx-auto w-16 h-16 bg-gradient-to-tr from-gold-400 to-gold-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-gold-500/30">
+                    <i class="ph-fill ph-crown text-3xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Upgrade to Pro</h3>
+                <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm">Unlocking regional layouts and multi-lingual Indian/Global support requires a Pro subscription. Join thousands of jewelers worldwide.</p>
+                
+                <button onclick="closeModal()" class="w-full bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition-transform active:scale-95 mb-3 flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-lock-key-open"></i> Unlock Premium ($4.99/mo)
+                </button>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 text-sm font-medium transition-colors">
+                    Maybe Later
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
